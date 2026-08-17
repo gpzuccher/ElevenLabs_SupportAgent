@@ -6,6 +6,7 @@ Rodar: uvicorn ecommerce_api:app --reload --port 8000
 Docs interativas: http://localhost:8000/docs
 """
 
+import logging
 from datetime import date, datetime
 
 from dotenv import load_dotenv
@@ -15,6 +16,12 @@ from pydantic import BaseModel
 import monday_client
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("ecommerce_api")
 
 app = FastAPI(title="E-commerce API (Monday.com backend)", version="1.0")
 
@@ -47,7 +54,9 @@ class ReturnEligibilityResponse(BaseModel):
 def _get_order_or_404(order_id: str) -> dict:
     order = monday_client.find_order(order_id)
     if not order:
+        logger.warning("Pedido não encontrado: order_id=%s", order_id)
         raise HTTPException(status_code=404, detail=f"Pedido {order_id} não encontrado")
+    logger.info("Pedido encontrado: order_id=%s brand=%s status=%s", order["order_id"], order["brand"], order["status"])
     return order
 
 
@@ -107,9 +116,11 @@ class OrderLookupRequest(BaseModel):
 
 @app.post("/tools/lookup-order-status", response_model=OrderStatusResponse)
 def tool_lookup_order_status(payload: OrderLookupRequest):
+    logger.info("Tool call recebida: lookup-order-status order_id=%r", payload.order_id)
     return get_order_status(payload.order_id)
 
 
 @app.post("/tools/check-return-eligibility", response_model=ReturnEligibilityResponse)
 def tool_check_return_eligibility(payload: OrderLookupRequest):
+    logger.info("Tool call recebida: check-return-eligibility order_id=%r", payload.order_id)
     return check_return_eligibility(payload.order_id)

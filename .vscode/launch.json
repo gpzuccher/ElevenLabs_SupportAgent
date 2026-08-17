@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API: uvicorn (debug)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "ecommerce_api:app",
+                "--reload",
+                "--port",
+                "8000"
+            ],
+            "jinja": true,
+            "justMyCode": true,
+            "envFile": "${workspaceFolder}/.env",
+            "python": "${workspaceFolder}/.venv/bin/python"
+        },
+        {
+            "name": "provision_agents.py --dry-run",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/provision_agents.py",
+            "args": [
+                "--csv",
+                "brands.csv",
+                "--dry-run"
+            ],
+            "justMyCode": true,
+            "envFile": "${workspaceFolder}/.env",
+            "python": "${workspaceFolder}/.venv/bin/python"
+        }
+    ]
+}

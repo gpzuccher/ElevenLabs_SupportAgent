@@ -19,9 +19,12 @@ Se o board mudar (coluna renomeada/recriada), os IDs acima também mudam —
 seriam necessários novos IDs.
 """
 
+import logging
 import os
 
 import requests
+
+logger = logging.getLogger("ecommerce_api.monday_client")
 
 MONDAY_API_URL = "https://api.monday.com/v2"
 MONDAY_API_VERSION = "2024-10"
@@ -74,6 +77,8 @@ def _run_query(query: str, variables: dict) -> dict:
     if not token:
         raise MondayClientError("Defina a variável de ambiente MONDAY_API_TOKEN")
 
+    logger.debug("Chamando Monday API: variables=%s", variables)
+
     response = requests.post(
         MONDAY_API_URL,
         json={"query": query, "variables": variables},
@@ -88,6 +93,7 @@ def _run_query(query: str, variables: dict) -> dict:
     payload = response.json()
 
     if "errors" in payload:
+        logger.error("Monday API retornou erro: %s", payload["errors"])
         raise MondayClientError(f"Monday API retornou erro: {payload['errors']}")
 
     return payload["data"]
@@ -118,6 +124,7 @@ def find_order(order_id: str) -> dict | None:
 
     items = data["boards"][0]["items_page"]["items"]
     if not items:
+        logger.info("Nenhum item encontrado no board %s para order_id=%r", board_id, order_id)
         return None
 
     item = items[0]
